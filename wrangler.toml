@@ -1,0 +1,35 @@
+# 2026-08-10 — Christian T. Macion · portfolio AI proxy.
+# Edge AI gateway for the "Ask anything" ⌘K palette on
+# https://christianmacion.github.io. Calls Workers AI (llama-3.1-8b-instruct).
+# Architecture: portfolio (static GH Pages) → this Worker (edge) → Workers AI.
+# The portfolio never holds a key, never proxies secrets, never sees CF-AI tokens.
+
+name = "christianmacion-ai-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-07-31"
+compatibility_flags = ["nodejs_compat"]
+
+# AI binding: Workers AI (free tier — 10k neurons/day, ~1k chats/day).
+# https://developers.cloudflare.com/workers-ai/
+[ai]
+binding = "AI"
+
+# KV binding: rate-limit store (per-IP daily bucket).
+# Created via: wrangler kv namespace create RATE_LIMIT
+# IDs are placeholders; replace with real IDs on first deploy.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Worker placement: edge for low TTFB on /ask.
+# (Default — no override needed; CF runs everywhere by default.)
+
+# Vars (non-secret). ALLOWED_ORIGIN is the strict allowlist for the
+# /ask endpoint — only requests from this Origin pass the CORS gate.
+# Comma-separated list to allow both www + apex + localhost during dev.
+[vars]
+ALLOWED_ORIGIN = "https://christianmacion.github.io,http://localhost:4321"
+DAILY_RATE_LIMIT = "20"
+MODEL_ID = "@cf/meta/llama-3.1-8b-instruct"
+MAX_TOKENS = "400"
+TEMPERATURE = "0.6"
