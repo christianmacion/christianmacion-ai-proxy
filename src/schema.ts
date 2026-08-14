@@ -52,6 +52,45 @@ export const AskResponse = z.object({
 export type AskResponse = z.infer<typeof AskResponse>;
 
 /**
+ * /rates response envelope.
+ *
+ * Server-side aggregator for the converter modal. Pulls ECB FX
+ * (daily fix), Binance 24hr tickers (top 20 by vol), CoinGecko
+ * top-50 by market cap, and Yahoo Finance for the 6 non-ECB
+ * ASEAN + BRICS fiats (CNY, PHP, INR, IDR, MYR, THB).
+ *
+ * Failures are per-source: if Yahoo is rate-limited, the envelope
+ * still returns with `source_status.yahoo = "degraded"` and the
+ * caller can render `UNAVAILABLE` for missing rows.
+ */
+export const RatesResponse = z.object({
+  request_id: z.string().uuid(),
+  ts: z.string().datetime(),
+  source_status: z.object({
+    ecb: z.enum(["ok", "degraded", "down"]),
+    binance: z.enum(["ok", "degraded", "down"]),
+    coingecko: z.enum(["ok", "degraded", "down"]),
+    yahoo: z.enum(["ok", "degraded", "down"]),
+  }),
+  fiat: z.record(z.string(), z.number().positive()),
+  crypto: z.record(
+    z.string(),
+    z.object({
+      last: z.number(),
+      bid: z.number().optional(),
+      ask: z.number().optional(),
+      change24h: z.number().optional(),
+      volume24h: z.number().optional(),
+      source: z.enum(["binance", "coingecko"]),
+      symbol: z.string(),
+    }),
+  ),
+  stale: z.boolean(),
+});
+
+export type RatesResponse = z.infer<typeof RatesResponse>;
+
+/**
  * Standard error envelope per back_end_engineer hard-refusal §4.
  * Every failure path emits this shape, with a 4xx/5xx status.
  */
@@ -66,6 +105,7 @@ export const ErrorEnvelope = z.object({
     "METHOD_NOT_ALLOWED",
     "AI_ERROR",
     "INTERNAL",
+    "UPSTREAM_ERROR",
   ]),
   request_id: z.string().uuid(),
   detail: z.string().optional(),
