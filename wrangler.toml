@@ -19,7 +19,7 @@ binding = "AI"
 # IDs are placeholders; replace with real IDs on first deploy.
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "eee4128795c944e08fac177fd6add252"
 
 # Worker placement: edge for low TTFB on /ask.
 # (Default — no override needed; CF runs everywhere by default.)
@@ -30,6 +30,6 @@ id = "REPLACE_WITH_KV_NAMESPACE_ID"
 [vars]
 ALLOWED_ORIGIN = "https://christianmacion.github.io,http://localhost:4321"
 DAILY_RATE_LIMIT = "20"
-MODEL_ID = "@cf/meta/llama-3.1-8b-instruct"
+MODEL_ID = "@cf/meta/llama-3.2-3b-instruct"
 MAX_TOKENS = "400"
 TEMPERATURE = "0.6"
